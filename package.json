@@ -1,0 +1,17 @@
+{
+  "name": "socket-io-channel-sweeper-repo-dev",
+  "version": "1.0.0",
+  "description": "Socket.io handler connected to Redis to sweep active channels from postgresql database",
+  "main": "index.js",
+  "dependencies": {
+    "node-rdkafka": "^2.15.0"
+  },
+  "scripts": {
+    "dev": "nodemon index.js --inspect"
+  },
+  "author": "Shav Vimalendiran",
+  "type": "module",
+  "devDependencies": {
+    "dotenv": "^16.0.3"
+  }
+}
