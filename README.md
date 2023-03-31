@@ -54,3 +54,56 @@ We want to output this:
   "value": "A-0x1234567890abcdef-B-0x1234567890abcdef"
 }
 ```
+
+# Resources
+
+- https://flink.apache.org/2017/03/30/continuous-queries-on-dynamic-tables/
+
+one state for active spreads:
+
+```java
+{
+    'A_B': true
+    'A_C': false
+    'A_D': true
+    'A_E': false
+}
+```
+
+`MapState<UK, UV>` keeps a list of mappings. We can have one for the orderbooks similar to Dynamic Table in update mode:
+
+```java
+{
+    'A': '0x1234567890abcdef'
+    'B': '0x1234567890abcdef'
+    'C': '0x1234567890abcdef'
+    'D': '0x1234567890abcdef'
+    'E': '0x1234567890abcdef'
+}
+```
+
+AND we can maintain active spreads like this:
+
+```java
+'A': ['A_B', 'A_D']
+'B': ['A_B', 'C_B', 'B_D']
+'C': ['C_B']
+'D': ['A_D', 'B_D']
+```
+
+# Solution
+
+The keyed state interfaces provides access to different types of state that are all scoped to the key of the current input element.
+
+We will maintain, for every Key, a `MapState<UK, UV>` for active spreads and a `ValueState<T>` for the OB value.
+
+There are now two scenarios:
+
+1. We get an OB
+   - We reference the `MapState` with the key of that Asset. On a KeyedStream, the `MapState<UK, UV>` keeps a list of mappings for that specific Key.
+   - We first use `isEmpty()` to check whether this map contains any key-value mappings. If empty, do nothing. If not empty do 2 things:
+     - Update the `ValueState<T>` OB value for this OB
+     - Call `keys()` to get all the active opposite assets. We compute these spread OB's and emit.
+2. We get an update from active streams
+   - Key this stream by `asset_1`
+   - add/remove `asset_2` from the `MapState<UK, UV>` for `asset_1`
