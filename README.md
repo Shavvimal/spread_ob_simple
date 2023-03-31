@@ -55,10 +55,6 @@ We want to output this:
 }
 ```
 
-# Resources
-
-- https://flink.apache.org/2017/03/30/continuous-queries-on-dynamic-tables/
-
 # Solution
 
 The keyed state interfaces provides access to different types of state that are all scoped to the key of the current input element.
@@ -75,3 +71,7 @@ There are now two scenarios:
 2. We get an update from active streams
    - Key this stream by `asset_1`
    - add/remove `asset_2` from the `MapState<UK, UV>` for `asset_1`
+
+# Resources
+
+- [Dynamic Tables Flink](https://flink.apache.org/2017/03/30/continuous-queries-on-dynamic-tables/)
