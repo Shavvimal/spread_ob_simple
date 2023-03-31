@@ -75,3 +75,4 @@ There are now two scenarios:
 # Resources
 
 - [Dynamic Tables Flink](https://flink.apache.org/2017/03/30/continuous-queries-on-dynamic-tables/)
+- [Working with State](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/fault-tolerance/state/)
