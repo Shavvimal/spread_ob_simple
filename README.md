@@ -4,7 +4,7 @@ lets simplify the problem bro. Lets just try to get the Dynamic Filtering going 
 
 Lets say we have 2 streams, ['active_spreads', 'assets'].
 
-lets say 'assets stream' is just a string for simplicity, e.g lets use a random hex string as the value. The name is 'asset'. Lets enumerate the assets from A to E. Now each message will look like this:
+lets say 'assets' stream is just a string for simplicity, e.g lets use a random hex string as the value. The name is 'asset'. Lets enumerate the assets from A to E. Now each message will look like this:
 
 ```json
 {
