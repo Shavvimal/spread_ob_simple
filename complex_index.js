@@ -2,16 +2,25 @@ import Kafka from "node-rdkafka";
 import cluster from "cluster";
 import os from "os";
 import dotenv from "dotenv";
-import { randomBytes } from "crypto";
 dotenv.config();
 
 const numCPUs = os.cpus().length;
+let quotes = ["USDT", "BUSD", "USDC"];
 // we will be using one cpu core for active streams
-// the remaining cores will be assigned a letter
-let alphabet = "abcdefghijklmnopqrstuvwxyz".toUpperCase().split("");
-
+// the remaining cores will be assigned a letter to dev up a channel name
+let alphabet = "abcde".toUpperCase().split("");
+// Generate random pairs
+const generateAllPairs = () => {
+  let pairs = [];
+  for (let i = 0; i < alphabet.length; i++) {
+    for (let j = 0; j < quotes.length; j++) {
+      pairs.push(alphabet[i] + "-" + quotes[j]);
+    }
+  }
+  return pairs;
+};
 // Only use the number of cores - 1 for the letter array (one is for active streams)
-const letterArray = alphabet.slice(0, numCPUs - 1);
+const letterArray = generateAllPairs().slice(0, numCPUs - 1);
 
 if (cluster.isPrimary) {
   console.log(`!Master ${process.pid} Setup Report! CPU Number: ${numCPUs}`);
@@ -44,6 +53,7 @@ if (cluster.isPrimary) {
   };
 
   const producer = new Kafka.Producer(config);
+
   let workerId = cluster.worker.id - 1;
   //  if worker id is 0, then we do active streams and assign the rest of the workers to the letter array
   if (workerId === 0) {
@@ -76,8 +86,8 @@ if (cluster.isPrimary) {
       let randomTrigger = Math.random() >= 0.5;
       return {
         spread: randomSpread,
-        asset_one: randomSpread.split("_")[0],
-        asset_two: randomSpread.split("_")[1],
+        assetone: randomSpread.split("_")[0],
+        assettwo: randomSpread.split("_")[1],
         trigger: randomTrigger,
       };
     };
@@ -95,17 +105,35 @@ if (cluster.isPrimary) {
       }, 1000);
     });
   } else {
-    //  OB stream worker
+    //  OB stream
     var topic = process.env.TOPIC_OB;
     let worker_asset = letterArray[workerId - 1];
+    let quote = worker_asset.split("-")[1];
+    let base = worker_asset.split("-")[0];
 
+    const generateRandomArray = (max, sort) => {
+      // generate a random array of numbers from 1 to 101
+      // length should be 10
+      let arr = [];
+      for (let i = 0; i < 10; i++) {
+        arr.push(Math.floor(Math.random() * max) + 1);
+      }
+      // sort the array
+      if (sort === true) {
+        arr.sort((a, b) => a - b);
+      }
+      return arr;
+    };
     const generateFakeOrderbook = () => {
       // Need to generate a fake orderbook for this asset
-      // generate random hex string as the value
-      let valueHex = randomBytes(6).toString("hex").toUpperCase();
       const orderbook = {
-        asset: worker_asset,
-        value: valueHex,
+        symbol: worker_asset,
+        bid_size: generateRandomArray(10, false),
+        bids: generateRandomArray(100, true),
+        asks: generateRandomArray(100, true),
+        ask_size: generateRandomArray(10, false),
+        base: base,
+        quote: quote,
       };
       return orderbook;
     };
