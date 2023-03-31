@@ -59,38 +59,6 @@ We want to output this:
 
 - https://flink.apache.org/2017/03/30/continuous-queries-on-dynamic-tables/
 
-one state for active spreads:
-
-```java
-{
-    'A_B': true
-    'A_C': false
-    'A_D': true
-    'A_E': false
-}
-```
-
-`MapState<UK, UV>` keeps a list of mappings. We can have one for the orderbooks similar to Dynamic Table in update mode:
-
-```java
-{
-    'A': '0x1234567890abcdef'
-    'B': '0x1234567890abcdef'
-    'C': '0x1234567890abcdef'
-    'D': '0x1234567890abcdef'
-    'E': '0x1234567890abcdef'
-}
-```
-
-AND we can maintain active spreads like this:
-
-```java
-'A': ['A_B', 'A_D']
-'B': ['A_B', 'C_B', 'B_D']
-'C': ['C_B']
-'D': ['A_D', 'B_D']
-```
-
 # Solution
 
 The keyed state interfaces provides access to different types of state that are all scoped to the key of the current input element.
