@@ -20,6 +20,8 @@ The active spreads will be a stream of messages & triggers like this:
 ```json
 {
   "spread": "A_B",
+  "asset_1": "A",
+  "asset_2": "B",
   "trigger": true
 }
 ```
