@@ -76,3 +76,24 @@ There are now two scenarios:
 
 - [Dynamic Tables Flink](https://flink.apache.org/2017/03/30/continuous-queries-on-dynamic-tables/)
 - [Working with State](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/fault-tolerance/state/)
+
+# Celery Solution
+
+Celery: Distributed task queue
+Celery allows you to define tasks and distribute them across multiple workers, and can handle task retries, timeouts, and prioritization.
+
+With this setup, each Celery worker will subscribe to a specific order book and continuously compute the spread until it is told to stop. The workers will be automatically distributed across the ECS cluster, and the number of workers will be scaled up or down based on the workload. This helps ensure the system is scalable and fault-tolerant.
+
+1. Create an ECS cluster and task definition for the Celery workers. The task definition includes a container image that has Celery and any necessary dependencies installed. See [here](https://github.com/tanchinhiong/decoupled-celery-example) for a model docker compose.
+2. Set up a Redis server to store the order book data. The Celery workers will subscribe to this Redis server to receive updates on the order book.
+3. Use Celery to define the task that the workers will execute i.e. which spreads.
+   1. The task first connects to redis amd subscribes to the orderbooks in Redis that it needs for the spread it has been tasked with
+   2. It uses the spread function to compute the spreads continuously by maintaining both OB's in memory.
+   3. It emits the spread orderbook to the socket redis server. Use [this](https://pypi.org/project/socket.io-emitter/) package
+4. Instantiate a PG lister in the Celery Broker to start / end tasks.
+   - another option is to use the Celery API to submit the task to a Celery task queue.
+   - Each task should include the necessary ob assets needed to subscribe to the correct order book in Redis.
+5. Configure an ECS service to run the Celery workers. The service should be set up with service scaling to automatically scale the number of containers based on the number of tasks in the Celery task queue.
+   - Will need custom metrics to create these scaling triggers, or we go with a simple CPU based scaling trigger.
+6. Monitor the ECS cluster and task queue metrics to optimize resource utilization and identify any issues such as job timeouts or container failures.
+7. Set up the UI such as Flower seen in [this article](https://medium.com/@tanchinhiong/separating-celery-application-and-worker-in-docker-containers-f70fedb1ba6d) to monitor the Celery workers and tasks.
